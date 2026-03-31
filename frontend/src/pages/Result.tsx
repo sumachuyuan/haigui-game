@@ -11,6 +11,7 @@ export default function Result() {
   const location = useLocation();
   const navigate = useNavigate();
   const { story, messages, isSuccess } = location.state as { story: TStory; messages: Message[]; isSuccess: boolean };
+  console.log('Result Page - Received Messages:', messages);
 
   if (!story) {
     navigate('/');
@@ -44,7 +45,7 @@ export default function Result() {
                 }`}>
                   <p className="text-sm">
                     {msg.role === 'user' 
-                      ? `${msg.playerNumber || ''}号：${msg.content}` 
+                      ? <>{(msg.playerNumber && msg.playerNumber !== '?') ? <span className="font-bold text-blue-600">{msg.playerNumber}号：</span> : ''}{msg.content}</>
                       : `AI：${msg.content}`
                     }
                   </p>

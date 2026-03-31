@@ -11,8 +11,14 @@ const Game: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; playerNumber?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [childNumber, setChildNumber] = useState('');
+  const childNumberRef = React.useRef('');
   const [questionCount, setQuestionCount] = useState(0);
   const [gameStatus, setGameStatus] = useState<'playing' | 'ended'>('playing');
+
+  // 同步 Ref
+  useEffect(() => {
+    childNumberRef.current = childNumber;
+  }, [childNumber]);
 
   useEffect(() => {
     if (id) {
@@ -29,29 +35,56 @@ const Game: React.FC = () => {
     }
   }, [id]);
 
- const handleSend = async (message: string) => {
+  const handleSend = async (message: string) => {
     if (gameStatus === 'ended') return;
-    
-    console.log('准备调用 askAI, 问题:', message);  // ← 加这行
-    
-    setMessages(prev => [...prev, { role: 'user', content: message, playerNumber: childNumber }]);
+
+    // 【深度扫描模式】查找页面上所有的输入框和选择框，确保捕捉到下拉菜单的值
+    const allElements = Array.from(document.querySelectorAll('input, select'));
+    console.log(`[DEBUG] Total input/select elements found: ${allElements.length}`);
+
+    let capturedValue = '';
+
+    allElements.forEach((el, index) => {
+      const input = el as HTMLInputElement | HTMLSelectElement;
+      console.log(`[SCAN] Element #${index}: tag="${input.tagName}", id="${input.id}", value="${input.value}"`);
+
+      // 匹配下拉框或输入框
+      if (input.id === 'final-child-number-id' && input.value) {
+        capturedValue = input.value.trim();
+      }
+    });
+
+    console.log('[DEBUG] Final Captured Value:', capturedValue);
+
+    const currentPlayerNumber = capturedValue || childNumber || '?';
+
+    setMessages(prev => [...prev, { role: 'user', content: message, playerNumber: currentPlayerNumber }]);
     setQuestionCount(prev => prev + 1);
     setIsLoading(true);
 
     try {
       if (!story) throw new Error('故事不存在');
       const answer = await askAI(message, story);
-      
+
       // 检测是否揭开真相
       if (answer === '真相大白') {
         setGameStatus('ended');
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: '🎉 恭喜你！你已经揭开了真相！太棒了！' 
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '🎉 恭喜你！你已经揭开了真相！太棒了！'
         }]);
-        // 延迟一秒自动跳转到结果页查看汤底
+
+        // 延迟跳转
         setTimeout(() => {
-          navigate('/result', { state: { story, messages: [...messages, { role: 'user', content: message }, { role: 'assistant', content: '🎉 恭喜你揭开了真相！' }], isSuccess: true } });
+          setMessages(currentMessages => {
+            const finalMessages = [
+              ...currentMessages,
+              { role: 'assistant', content: '🎉 恭喜你揭开了真相！' }
+            ];
+            console.log('[DEBUG] Navigating to result. Final Payload:', finalMessages);
+            navigate('/result', { state: { story, messages: finalMessages, isSuccess: true } });
+            return currentMessages;
+          });
         }, 2000);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
@@ -98,7 +131,17 @@ const Game: React.FC = () => {
             <h1 className="text-3xl font-bold font-['Comic_Sans_MS',_cursive] text-blue-800">{story.title}</h1>
             <div className="flex items-center gap-2">
               <label className="text-blue-700 font-['Comic_Sans_MS',_cursive]">编号：</label>
-              <input type="number" value={childNumber} onChange={(e) => setChildNumber(e.target.value)} placeholder="1-10" min="1" max="10" className="w-20 px-3 py-2 rounded-xl border border-gray-300" />
+              <select
+                id="final-child-number-id"
+                value={childNumber}
+                onChange={(e) => setChildNumber(e.target.value)}
+                className="w-20 px-3 py-2 rounded-xl border border-gray-300 bg-white"
+              >
+                <option value="">-</option>
+                {[...Array(10)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>{i + 1}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="bg-white bg-opacity-80 rounded-2xl p-4 mb-4">

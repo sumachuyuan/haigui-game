@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Message from './Message';
 
 interface ChatBoxProps {
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  messages: Array<{ role: 'user' | 'assistant'; content: string; playerNumber?: string }>;
   onSend: (message: string) => void;
   isLoading: boolean;
   disabled?: boolean;
@@ -46,7 +46,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSend, isLoading, disabled
         {messages.map((message, index) => (
           <Message key={index} message={message} />
         ))}
-        
+
         {/* 加载动画 */}
         {isLoading && (
           <div className="flex justify-start mb-4">
@@ -58,7 +58,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSend, isLoading, disabled
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 

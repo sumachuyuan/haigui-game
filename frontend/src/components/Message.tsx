@@ -4,6 +4,7 @@ interface MessageProps {
   message: {
     role: 'user' | 'assistant';
     content: string;
+    playerNumber?: string;
   };
 }
 
@@ -14,8 +15,15 @@ const Message: React.FC<MessageProps> = ({ message }) => {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`flex items-end ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
         {/* 头像 */}
-        <div className="text-2xl">
-          {isUser ? '👧' : '🐼'}
+        <div className="flex flex-col items-center">
+          <div className="text-2xl">
+            {isUser ? '👧' : '🐼'}
+          </div>
+          {isUser && message.playerNumber && message.playerNumber !== '?' && (
+            <span className="text-[10px] text-blue-600 font-black mt-0.5 leading-none">
+              {message.playerNumber}号
+            </span>
+          )}
         </div>
         
         {/* 消息气泡 */}
