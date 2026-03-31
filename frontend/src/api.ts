@@ -25,11 +25,12 @@ export const askAI = async (question: string, story: TStory): Promise<string> =>
     const answer = data.answer.trim();
 
     // 检查回答是否符合规范
-    const validAnswers = ['是', '不是', '无关'];
+    const validAnswers = ['是', '不是', '无关', '真相大白'];
     const guidePhrases = [
       "要用'是不是'来提问哦，这样我才能回答是或不是～",
       "一次只问一个问题，这样我才能听清楚～",
-      "这个问题好像和故事没关系哦，要不要换个角度试试？"
+      "这个问题好像和故事没关系哦，要不要换个角度试试？",
+      "🎉 恭喜你！你已经揭开了真相！太棒了！"
     ];
 
     if (validAnswers.includes(answer) || guidePhrases.some(phrase => answer.includes(phrase))) {

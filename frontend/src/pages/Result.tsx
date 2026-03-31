@@ -10,7 +10,7 @@ interface Message {
 export default function Result() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { story, messages } = location.state as { story: TStory; messages: Message[] };
+  const { story, messages, isSuccess } = location.state as { story: TStory; messages: Message[]; isSuccess: boolean };
 
   if (!story) {
     navigate('/');
@@ -20,8 +20,10 @@ export default function Result() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-50 py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">🎉 真相揭晓 🎉</h1>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-blue-600 mb-2">
+            {isSuccess ? '🏆 恭喜！挑战成功 🏆' : '📖 故事真相'}
+          </h1>
           <p className="text-gray-600">{story.title}</p>
         </div>
 

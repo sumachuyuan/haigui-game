@@ -40,10 +40,22 @@ const Game: React.FC = () => {
 
     try {
       if (!story) throw new Error('故事不存在');
-      console.log('调用 askAI 前:', { message, story });
       const answer = await askAI(message, story);
-      console.log('调用 askAI 后:', { answer });
-      setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
+      
+      // 检测是否揭开真相
+      if (answer === '真相大白') {
+        setGameStatus('ended');
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: '🎉 恭喜你！你已经揭开了真相！太棒了！' 
+        }]);
+        // 延迟一秒自动跳转到结果页查看汤底
+        setTimeout(() => {
+          navigate('/result', { state: { story, messages: [...messages, { role: 'user', content: message }, { role: 'assistant', content: '🎉 恭喜你揭开了真相！' }], isSuccess: true } });
+        }, 2000);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
+      }
     } catch (error) {
       console.error('调用 askAI 错误:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: '抱歉，我现在有点忙，稍后再回答你吧！' }]);
@@ -55,7 +67,7 @@ const Game: React.FC = () => {
   const handleShowBottom = () => {
     if (story) {
       setGameStatus('ended');
-      navigate('/result', { state: { story, messages } });
+      navigate('/result', { state: { story, messages, isSuccess: false } });
     }
   };
 
