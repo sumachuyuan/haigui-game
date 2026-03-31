@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>后端测试</title>
+</head>
+<body>
+    <h2>测试后端 /api/chat</h2>
+    <input type="text" id="question" placeholder="输入问题" style="width:300px">
+    <button onclick="send()">发送</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function send() {
+            const question = document.getElementById('question').value;
+            const story = {
+                surface: "小恐龙在草地上玩，天空突然变暗了",
+                bottom: "白云挡住了太阳"
+            };
+            const response = await fetch('http://localhost:3000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, story })
+            });
+            const data = await response.json();
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>

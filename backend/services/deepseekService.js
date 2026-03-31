@@ -1,19 +1,19 @@
-const axios = require('axios');
+import axios from 'axios';
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 class DeepSeekService {
-  constructor() {
-    if (!API_KEY) {
-      console.warn('警告: 未设置 DEEPSEEK_API_KEY 环境变量');
-    }
+  constructor() {}
+
+  getApiKey() {
+    return process.env.DEEPSEEK_API_KEY || process.env.VITE_DEEPSEEK_API_KEY;
   }
 
   async chat(question, story) {
+    const apiKey = this.getApiKey();
     try {
-      if (!API_KEY) {
-        throw new Error('DEEPSEEK_API_KEY 未配置');
+      if (!apiKey) {
+        throw new Error('API Key 未配置');
       }
 
       if (!question || typeof question !== 'string') {
@@ -42,7 +42,7 @@ class DeepSeekService {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`
+            'Authorization': `Bearer ${apiKey}`
           },
           timeout: 30000
         }
@@ -82,23 +82,37 @@ class DeepSeekService {
   }
 
   buildSystemPrompt(story) {
-    return `你是一个儿童友好的海龟汤游戏主持人，专门为幼儿园到小学低年级的孩子设计。
+    return `你是一个儿童海龟汤游戏的主持人。你的任务是根据“汤底”判断孩子的提问。
 
-当前故事：
+【当前故事】
 汤面：${story.surface}
 汤底：${story.bottom}
 
-规则：
-1. 根据汤底判断，回答只能是"是"、"不是"或"无关"
-2. 回答要简短、有趣，用孩子能听懂的语言
-3. 语气温柔、鼓励，像老师一样亲切
+【核心任务】
+1. **优先判断逻辑**：即便孩子提问中带有标点（如“是不是。天太黑了？”），只要他在试图用“是不是”的方式提问，你就必须根据汤底逻辑回答：
+   - 是
+   - 不是
+   - 无关
 
-特殊情况：
-- 如果孩子问的问题不是"是不是"开头，温柔提醒："要用'是不是'来提问哦，这样我才能回答是或不是～"
-- 如果孩子一次问了多个问题，提醒："一次只问一个问题，这样我才能听清楚～"
-- 如果问题与故事无关，引导："这个问题好像和故事没关系哦，要不要换个角度试试？"
-- 如果孩子说"我不知道"、"猜不到"、"放弃"之类的话，温柔鼓励："没关系，再想想看～你可以试着问‘是不是...’"`;
+2. **严格的输出格式**：
+   - 你的回复**只能**是“是”、“不是”或“无关”。
+   - **除非**遇到以下情况，否则严禁多说一个字：
+     - 孩子完全没用“是不是”的意思（如：“他去哪了？”）：回复“要用'是不是'来提问哦，这样我才能回答是或不是～”
+     - 孩子想放弃：回复“没关系，再想想看～您可以试着问‘是不是...’”
+
+【回复示例】
+孩子：是不是。天太黑了？
+你：是
+
+孩子：他死了吗？
+你：要用'是不是'来提问哦，这样我才能回答是或不是～
+
+孩子：是不是他弄坏了玩具？
+你：不是
+
+孩子：是不是他在吃饭？
+你：无关`;
   }
 }
 
-module.exports = new DeepSeekService();
+export default new DeepSeekService();
