@@ -77,12 +77,7 @@ const Game: React.FC = () => {
         // 延迟跳转
         setTimeout(() => {
           setMessages(currentMessages => {
-            const finalMessages = [
-              ...currentMessages,
-              { role: 'assistant', content: '🎉 恭喜你揭开了真相！' }
-            ];
-            console.log('[DEBUG] Navigating to result. Final Payload:', finalMessages);
-            navigate('/result', { state: { story, messages: finalMessages, isSuccess: true } });
+            navigate('/result', { state: { story, messages: currentMessages, isSuccess: true } });
             return currentMessages;
           });
         }, 2000);
